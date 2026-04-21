@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Typing Battle MVP</title>
+  <style>
+    :root {
+      --bg: #11151c;
+      --panel: #1b2430;
+      --panel-2: #243041;
+      --text: #e9eef5;
+      --muted: #a9b4c2;
+      --accent: #65d6ff;
+      --good: #7ef29a;
+      --bad: #ff7d7d;
+      --warn: #ffd166;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(180deg, #0d1117, #131a23 55%, #0d1117);
+      color: var(--text);
+      min-width: 1180px;
+    }
+
+    .app {
+      width: min(1400px, calc(100vw - 32px));
+      margin: 16px auto;
+      display: grid;
+      gap: 14px;
+    }
+
+    .top {
+      display: grid;
+      grid-template-columns: 1.25fr .95fr;
+      gap: 14px;
+      min-height: 360px;
+    }
+
+    .panel {
+      background: rgba(27, 36, 48, 0.96);
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      background: rgba(255,255,255,.04);
+      padding: 10px 14px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      color: #d7e0ea;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+
+    .enemy-panel {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+
+    .enemy-stage {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .enemy-wrap {
+      display: grid;
+      place-items: center;
+      padding: 6px 20px 0;
+      position: relative;
+    }
+
+    .enemy-emoji {
+      font-size: 144px;
+      line-height: 1;
+      filter: drop-shadow(0 12px 18px rgba(0,0,0,.28));
+      transform-origin: center;
+    }
+
+    .shake-enemy {
+      animation: shakeEnemy .34s ease-in-out;
+    }
+
+    @keyframes shakeEnemy {
+      0% { transform: translateX(0); }
+      18% { transform: translateX(-10px) rotate(-3deg); }
+      36% { transform: translateX(10px) rotate(2deg); }
+      54% { transform: translateX(-8px) rotate(-2deg); }
+      72% { transform: translateX(6px) rotate(1deg); }
+      100% { transform: translateX(0); }
+    }
+
+    .enemy-name {
+      font-size: 28px;
+      font-weight: 800;
+      margin-top: 14px;
+    }
+
+    .enemy-sub {
+      color: var(--muted);
+      margin-top: 4px;
+      font-size: 14px;
+    }
+
+    .bar-box {
+      padding: 12px 16px 16px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 62px 1fr 72px;
+      gap: 10px;
+      align-items: center;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .bar {
+      width: 100%;
+      height: 16px;
+      background: rgba(255,255,255,.08);
+      border-radius: 999px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width .28s ease;
+      background: linear-gradient(90deg, #69ffb5, #2bd6ff);
+    }
+
+    .bar-fill.hp-low {
+      background: linear-gradient(90deg, #ffb347, #ff5757);
+    }
+
+    .side {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 14px;
+    }
+
+    .status-body {
+      padding: 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .stat-card {
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .stat-title {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1.1;
+    }
+
+    .item-list {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      min-height: 40px;
+      align-items: center;
+    }
+
+    .item-pill {
+      padding: 6px 10px;
+      background: rgba(255,255,255,.08);
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.08);
+      font-size: 14px;
+    }
+
+    .msg-panel {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-height: 180px;
+    }
+
+    .messages {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: end;
+      gap: 8px;
+      font-size: 15px;
+      min-height: 180px;
+    }
+
+    .message-line {
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(255,255,255,.04);
+    }
+
+    .mid {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 14px;
+    }
+
+    .input-body {
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .phase-badge {
+      width: fit-content;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: rgba(101,214,255,.14);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .05em;
+    }
+
+    .word-ja {
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: .03em;
+    }
+
+    .word-romaji {
+      font-size: 22px;
+      color: #c8d8ea;
+      letter-spacing: .06em;
+    }
+
+    .typed-line {
+      min-height: 58px;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 30px;
+      padding: 10px 14px;
+      background: rgba(0,0,0,.18);
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.07);
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      flex-wrap: wrap;
+      word-break: break-all;
+    }
+
+    .typed-ok { color: var(--good); }
+    .typed-pending { color: #9ab0c7; }
+    .typed-wrong { color: var(--bad); }
+
+    .timer-wrap {
+      display: grid;
+      gap: 8px;
+    }
+
+    .timer-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .timer-bar {
+      height: 20px;
+      background: rgba(255,255,255,.08);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .timer-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #9eff7a, #ffd166, #ff7d7d);
+      transition: width .08s linear;
+    }
+
+    .help-grid {
+      padding: 16px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .help-card {
+      background: rgba(255,255,255,.04);
+      border-radius: 14px;
+      padding: 12px;
+      border: 1px solid rgba(255,255,255,.06);
+    }
+
+    .help-card h4 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .help-card p {
+      margin: 0;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .kbd-panel {
+      position: relative;
+      overflow: visible;
+    }
+
+    .shake-kbd {
+      animation: shakeKeyboard .34s ease-in-out;
+    }
+
+    @keyframes shakeKeyboard {
+      0% { transform: translateX(0); }
+      18% { transform: translateX(-10px); }
+      36% { transform: translateX(10px); }
+      54% { transform: translateX(-8px); }
+      72% { transform: translateX(5px); }
+      100% { transform: translateX(0); }
+    }
+
+    .keyboard {
+      padding: 16px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .key-row {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .key {
+      min-width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, #334154, #283344);
+      border: 1px solid rgba(255,255,255,.08);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 20px;
+      color: #eaf1f8;
+      transition: transform .08s ease, background .12s ease, box-shadow .12s ease;
+      user-select: none;
+    }
+
+    .key.active {
+      background: linear-gradient(180deg, #5ea7ff, #376ebc);
+      box-shadow: 0 0 0 2px rgba(117,186,255,.55), 0 0 18px rgba(94,167,255,.35);
+      transform: translateY(-2px);
+    }
+
+    .key.hit {
+      background: linear-gradient(180deg, #78f3a5, #299b59);
+      transform: scale(.97);
+    }
+
+    .key.miss {
+      background: linear-gradient(180deg, #ff9b9b, #b93d3d);
+      transform: scale(.97);
+    }
+
+    .key-row.row-2 { padding-left: 10px; }
+    .key-row.row-3 { padding-left: 24px; }
+
+    .footer-bar {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 13px;
+      color: var(--muted);
+      padding: 0 4px 6px;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(4,8,12,.78);
+      display: none;
+      place-items: center;
+      z-index: 100;
+    }
+
+    .overlay.show { display: grid; }
+
+    .modal {
+      width: min(720px, calc(100vw - 40px));
+      background: #182230;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,.08);
+      box-shadow: var(--shadow);
+      padding: 28px;
+      text-align: center;
+    }
+
+    .modal h1 {
+      margin: 0 0 10px;
+      font-size: 40px;
+    }
+
+    .modal p {
+      color: #c9d5e2;
+      line-height: 1.7;
+      font-size: 16px;
+    }
+
+    .modal .big {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--warn);
+      margin: 16px 0;
+    }
+
+    .btn-row {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 22px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      background: linear-gradient(180deg, #5ea7ff, #2f6fc7);
+      color: #fff;
+    }
+
+    button.secondary {
+      background: linear-gradient(180deg, #49586e, #2e3949);
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section class="top">
+      <section class="panel enemy-panel">
+        <div class="enemy-stage">
+          <div id="stageText">STAGE 1 / 5</div>
+          <div id="phaseMini">ATTACK TURN</div>
+        </div>
+        <div class="enemy-wrap">
+          <div id="enemyEmoji" class="enemy-emoji">🦇</div>
+          <div class="enemy-name" id="enemyName">こうもり</div>
+          <div class="enemy-sub" id="enemyFlavor">よわそうだが、すばやい。</div>
+        </div>
+        <div class="bar-box">
+          <div class="bar-row">
+            <div>ENEMY</div>
+            <div class="bar"><div id="enemyHpFill" class="bar-fill" style="width:100%"></div></div>
+            <div id="enemyHpText">30 / 30</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="side">
+        <section class="panel">
+          <div class="panel-header">PLAYER STATUS</div>
+          <div class="status-body">
+            <div class="stat-card">
+              <div class="stat-title">HP</div>
+              <div class="stat-value" id="playerHpText">100 / 100</div>
+              <div class="bar" style="margin-top:10px"><div id="playerHpFill" class="bar-fill" style="width:100%"></div></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-title">BEST CLEAR / TOTAL CLEAR</div>
+              <div class="stat-value" id="bestText">0 / 0</div>
+            </div>
+            <div class="stat-card" style="grid-column:1 / -1;">
+              <div class="stat-title">ITEMS</div>
+              <div class="item-list" id="itemList"></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-title">MISS</div>
+              <div class="stat-value" id="missCount">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-title">TIME BONUS</div>
+              <div class="stat-value" id="timeBonusText">+0</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel msg-panel">
+          <div class="panel-header">BATTLE LOG</div>
+          <div class="messages" id="messages"></div>
+        </section>
+      </section>
+    </section>
+
+    <section class="mid">
+      <section class="panel">
+        <div class="panel-header">COMMAND INPUT</div>
+        <div class="input-body">
+          <div class="phase-badge" id="phaseBadge">ATTACK TURN</div>
+          <div class="word-ja" id="wordJa">スタートをおしてね</div>
+          <div class="word-romaji" id="wordRomaji">sutartowooshitene</div>
+          <div class="typed-line" id="typedLine"></div>
+          <div class="timer-wrap">
+            <div class="timer-row">
+              <span id="timerLabel">制限時間</span>
+              <span id="timerText">5.00s</span>
+            </div>
+            <div class="timer-bar"><div id="timerFill" class="timer-fill" style="width:100%"></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">RULE MEMO</div>
+        <div class="help-grid">
+          <div class="help-card"><h4>攻撃ターン</h4><p>語句を正しく打ち、最後に Enter。ノーミスならクリティカル判定あり。</p></div>
+          <div class="help-card"><h4>防御ターン</h4><p>語句を正しく打ち、最後に Enter。成功で軽減、ノーミスで回避判定あり。</p></div>
+          <div class="help-card"><h4>時間ボーナス</h4><p>早く終えるほど加点。⌛️取得時は制限時間のみ増え、ボーナス上限は増えない。</p></div>
+          <div class="help-card"><h4>操作</h4><p>キーボードのみで遊べる。英字は小文字で判定。誤字では進まない。</p></div>
+        </div>
+      </section>
+    </section>
+
+    <section class="panel kbd-panel" id="kbdPanel">
+      <div class="panel-header">JP KEYBOARD GUIDE</div>
+      <div class="keyboard" id="keyboard"></div>
+    </section>
+
+    <div class="footer-bar">
+      <div>Chrome 前提 / 単一HTML MVP / localStorage保存</div>
+      <div>再開は Enter または「はじめる」</div>
+    </div>
+  </div>
+
+  <div class="overlay show" id="overlay">
+    <div class="modal">
+      <h1>Typing Battle MVP</h1>
+      <p>RPGっぽく戦いながらタイピングする試作版。<br>誤字では進まず、最後に Enter で確定。5ステージを突破しよう。</p>
+      <div class="big" id="overlaySummary">はじめる準備OK</div>
+      <div class="btn-row">
+        <button id="startBtn">はじめる</button>
+        <button class="secondary" id="restartBtn">最初からやり直す</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'typingBattleMvpSave_v1';
+
+    const ENEMIES = [
+      { emoji: '🦇', name: 'こうもり', flavor: 'よわそうだが、すばやい。', hp: 32, attack: 12 },
+      { emoji: '🐺', name: 'おおかみ', flavor: '牙がするどい。', hp: 44, attack: 16 },
+      { emoji: '💀', name: 'どくろへい', flavor: 'いやな気配がする。', hp: 58, attack: 20 },
+      { emoji: '🧙‍♂️', name: 'まどうし', flavor: 'あやしい術をつかう。', hp: 72, attack: 24 },
+      { emoji: '🐉', name: 'りゅう', flavor: 'ラスボス。かなり強い。', hp: 96, attack: 32 }
+    ];
+
+    const ITEM_POOL = [
+      { id: 'hourglass', icon: '⌛️', name: 'とけい', desc: '入力時間 +20%' },
+      { id: 'sword', icon: '🗡️', name: 'けん', desc: '剣コマンド解禁' },
+      { id: 'shield', icon: '🛡️', name: 'たて', desc: '回避率アップ' },
+      { id: 'meat', icon: '🍖', name: 'にく', desc: '最大HP +10' },
+      { id: 'heart', icon: '❤', name: 'ハート', desc: 'HP +10' }
+    ];
+
+    const ATTACK_WORDS = [
+      ['ぶんなぐる', ['bunnnaguru','bunanaguru']],
+      ['つよくける', ['tuyokukeru','tsuyokukeru']],
+      ['つねる', ['tuneru','tsuneru']],
+      ['おっぺす', ['oppesu']],
+      ['ころばせる', ['korobaseru']],
+      ['ひっぱたく', ['hippataku']],
+      ['かみつく', ['kamituku','kamitsuku']],
+      ['つばをはく', ['tubawohaku','tsubawohaku']],
+      ['ひっかく', ['hikkaku']],
+      ['かみをむしる', ['kamiwomushiru']]
+    ].map(([ja, romans]) => ({ type: 'attack', ja, romans }));
+
+    const DEFEND_WORDS = [
+      ['ふせる', ['huseru','fuseru']],
+      ['うしろにかわす', ['ushironikawasu']],
+      ['うでをかまえる', ['udewokamaeru']],
+      ['ひだりにかわす', ['hidarinikawasu']],
+      ['みぎにかわす', ['miginikawasu']],
+      ['とんでかわす', ['tondekawasu']],
+      ['はなれる', ['hanareru']],
+      ['ねころぶ', ['nekorobu']],
+      ['みきわめる', ['mikiwameru']],
+      ['ふぇいんと', ['feinto']]
+    ].map(([ja, romans]) => ({ type: 'defend', ja, romans }));
+
+    const SWORD_WORDS = [
+      ['つきさす', ['tukisasu','tsukisasu']],
+      ['きりつける', ['kiritsukeru']],
+      ['みだれぎり', ['midaregiri']],
+      ['れんぞくぎり', ['renzokugiri']],
+      ['けさぎり', ['kesagiri']],
+      ['おにぎり', ['onigiri']],
+      ['かぶとわり', ['kabutowari']],
+      ['ぶっさす', ['bussasu']],
+      ['どっさす', ['dossasu']],
+      ['なぎはらう', ['nagiharau']]
+    ].map(([ja, romans]) => ({ type: 'sword', ja, romans }));
+
+    const KEY_LAYOUT = [
+      ['1','2','3','4','5','6','7','8','9','0','-'],
+      ['q','w','e','r','t','y','u','i','o','p'],
+      ['a','s','d','f','g','h','j','k','l'],
+      ['z','x','c','v','b','n','m']
+    ];
+
+    const els = {
+      stageText: document.getElementById('stageText'),
+      phaseMini: document.getElementById('phaseMini'),
+      enemyEmoji: document.getElementById('enemyEmoji'),
+      enemyName: document.getElementById('enemyName'),
+      enemyFlavor: document.getElementById('enemyFlavor'),
+      enemyHpFill: document.getElementById('enemyHpFill'),
+      enemyHpText: document.getElementById('enemyHpText'),
+      playerHpText: document.getElementById('playerHpText'),
+      playerHpFill: document.getElementById('playerHpFill'),
+      bestText: document.getElementById('bestText'),
+      itemList: document.getElementById('itemList'),
+      missCount: document.getElementById('missCount'),
+      timeBonusText: document.getElementById('timeBonusText'),
+      messages: document.getElementById('messages'),
+      phaseBadge: document.getElementById('phaseBadge'),
+      wordJa: document.getElementById('wordJa'),
+      wordRomaji: document.getElementById('wordRomaji'),
+      typedLine: document.getElementById('typedLine'),
+      timerLabel: document.getElementById('timerLabel'),
+      timerText: document.getElementById('timerText'),
+      timerFill: document.getElementById('timerFill'),
+      keyboard: document.getElementById('keyboard'),
+      kbdPanel: document.getElementById('kbdPanel'),
+      overlay: document.getElementById('overlay'),
+      overlaySummary: document.getElementById('overlaySummary'),
+      startBtn: document.getElementById('startBtn'),
+      restartBtn: document.getElementById('restartBtn')
+    };
+
+    const state = {
+      enemyIndex: 0,
+      player: {
+        hp: 100,
+        maxHp: 100,
+        items: new Set(),
+      },
+      currentEnemy: null,
+      phase: 'idle',
+      currentWord: null,
+      typed: '',
+      misses: 0,
+      pendingWrongFlash: false,
+      startTime: 0,
+      inputDeadline: 0,
+      timeLimit: 5,
+      bonusLimit: 5,
+      loopId: null,
+      lockInput: true,
+      clearedStages: 0,
+      totalClears: 0,
+      bestClear: 0,
+      lastBonus: 0,
+      stageRecovered: 0,
+    };
+
+    function loadSave() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        state.bestClear = Number(data.bestClear || 0);
+        state.totalClears = Number(data.totalClears || 0);
+      } catch (err) {
+        console.warn('save load failed', err);
+      }
+    }
+
+    function saveProgress() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        bestClear: state.bestClear,
+        totalClears: state.totalClears,
+      }));
+    }
+
+    function buildKeyboard() {
+      els.keyboard.innerHTML = '';
+      KEY_LAYOUT.forEach((row, index) => {
+        const rowEl = document.createElement('div');
+        rowEl.className = `key-row row-${index}`;
+        row.forEach((key) => {
+          const keyEl = document.createElement('div');
+          keyEl.className = 'key';
+          keyEl.dataset.key = key;
+          keyEl.textContent = key.toUpperCase();
+          rowEl.appendChild(keyEl);
+        });
+        els.keyboard.appendChild(rowEl);
+      });
+    }
+
+    function setOverlay(show, text = '') {
+      els.overlay.classList.toggle('show', show);
+      if (text) els.overlaySummary.textContent = text;
+    }
+
+    function resetGame() {
+      stopLoop();
+      state.enemyIndex = 0;
+      state.player.hp = 100;
+      state.player.maxHp = 100;
+      state.player.items = new Set();
+      state.phase = 'idle';
+      state.currentWord = null;
+      state.typed = '';
+      state.misses = 0;
+      state.lockInput = true;
+      state.clearedStages = 0;
+      state.lastBonus = 0;
+      state.stageRecovered = 0;
+      loadEnemy();
+      updateAll();
+      setTypedPreview();
+      clearMessages();
+      pushMessage('Enter か 「はじめる」でゲーム開始。');
+      pushMessage('攻撃も防御も、最後に Enter で確定する。');
+      setOverlay(true, 'はじめる準備OK');
+    }
+
+    function clearMessages() {
+      els.messages.innerHTML = '';
+    }
+
+    function pushMessage(text) {
+      const line = document.createElement('div');
+      line.className = 'message-line';
+      line.textContent = text;
+      els.messages.appendChild(line);
+      while (els.messages.children.length > 6) {
+        els.messages.removeChild(els.messages.firstChild);
+      }
+    }
+
+    function loadEnemy() {
+      const template = ENEMIES[state.enemyIndex];
+      state.currentEnemy = { ...template, currentHp: template.hp };
+    }
+
+    function updateAll() {
+      renderEnemy();
+      renderPlayer();
+      renderWord();
+      renderStats();
+    }
+
+    function renderEnemy() {
+      const e = state.currentEnemy;
+      els.stageText.textContent = `STAGE ${state.enemyIndex + 1} / ${ENEMIES.length}`;
+      els.enemyEmoji.textContent = e.emoji;
+      els.enemyName.textContent = e.name;
+      els.enemyFlavor.textContent = e.flavor;
+      els.enemyHpText.textContent = `${Math.max(0, e.currentHp)} / ${e.hp}`;
+      const pct = Math.max(0, (e.currentHp / e.hp) * 100);
+      els.enemyHpFill.style.width = `${pct}%`;
+      els.enemyHpFill.classList.toggle('hp-low', pct <= 30);
+    }
+
+    function renderPlayer() {
+      els.playerHpText.textContent = `${Math.max(0, state.player.hp)} / ${state.player.maxHp}`;
+      const pct = Math.max(0, (state.player.hp / state.player.maxHp) * 100);
+      els.playerHpFill.style.width = `${pct}%`;
+      els.playerHpFill.classList.toggle('hp-low', pct <= 30);
+
+      els.itemList.innerHTML = '';
+      if (state.player.items.size === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'item-pill';
+        empty.textContent = 'なし';
+        els.itemList.appendChild(empty);
+      } else {
+        [...state.player.items].forEach((id) => {
+          const item = ITEM_POOL.find(i => i.id === id);
+          const pill = document.createElement('div');
+          pill.className = 'item-pill';
+          pill.textContent = `${item.icon} ${item.desc}`;
+          els.itemList.appendChild(pill);
+        });
+      }
+      els.bestText.textContent = `${state.bestClear} / ${state.totalClears}`;
+    }
+
+    function renderWord() {
+      const phaseName = state.phase === 'defend' ? 'DEFENSE TURN' : state.phase === 'attack' ? 'ATTACK TURN' : 'READY';
+      els.phaseBadge.textContent = phaseName;
+      els.phaseMini.textContent = phaseName;
+      if (!state.currentWord) {
+        els.wordJa.textContent = 'はじめるを押して開始';
+        els.wordRomaji.textContent = 'hajimeruwooshitekaishi';
+      } else {
+        els.wordJa.textContent = state.currentWord.ja;
+        els.wordRomaji.textContent = state.currentWord.target;
+      }
+    }
+
+    function renderStats() {
+      els.missCount.textContent = String(state.misses);
+      els.timeBonusText.textContent = `+${state.lastBonus}`;
+    }
+
+    function setTypedPreview(showWrong = false) {
+      const target = state.currentWord ? state.currentWord.target : '';
+      const typed = state.typed;
+      let okLen = 0;
+      while (okLen < typed.length && okLen < target.length && typed[okLen] === target[okLen]) okLen++;
+      const pending = target.slice(okLen);
+      const wrongText = showWrong ? (typed[typed.length - 1] || '') : '';
+
+      els.typedLine.innerHTML = '';
+      if (okLen > 0) {
+        const span = document.createElement('span');
+        span.className = 'typed-ok';
+        span.textContent = target.slice(0, okLen);
+        els.typedLine.appendChild(span);
+      }
+      if (showWrong && wrongText) {
+        const span = document.createElement('span');
+        span.className = 'typed-wrong';
+        span.textContent = wrongText;
+        els.typedLine.appendChild(span);
+      }
+      const span2 = document.createElement('span');
+      span2.className = 'typed-pending';
+      span2.textContent = pending;
+      els.typedLine.appendChild(span2);
+
+      updateKeyboardActive();
+    }
+
+    function updateKeyboardActive(hitKey = null, missKey = null) {
+      const keys = document.querySelectorAll('.key');
+      keys.forEach(k => k.classList.remove('active', 'hit', 'miss'));
+      if (state.currentWord && !state.lockInput) {
+        const nextChar = state.currentWord.target[state.typed.length];
+        if (nextChar) {
+          const active = document.querySelector(`.key[data-key="${CSS.escape(nextChar)}"]`);
+          if (active) active.classList.add('active');
+        }
+      }
+      if (hitKey) {
+        const el = document.querySelector(`.key[data-key="${CSS.escape(hitKey)}"]`);
+        if (el) {
+          el.classList.add('hit');
+          setTimeout(() => el.classList.remove('hit'), 140);
+        }
+      }
+      if (missKey) {
+        const el = document.querySelector(`.key[data-key="${CSS.escape(missKey)}"]`);
+        if (el) {
+          el.classList.add('miss');
+          setTimeout(() => el.classList.remove('miss'), 160);
+        }
+      }
+    }
+
+    function pickWord(type) {
+      let pool = [];
+      if (type === 'attack') {
+        pool = [...ATTACK_WORDS];
+        if (state.player.items.has('sword')) pool.push(...SWORD_WORDS);
+      } else {
+        pool = [...DEFEND_WORDS];
+      }
+      const base = pool[Math.floor(Math.random() * pool.length)];
+      const target = base.romans[Math.floor(Math.random() * base.romans.length)];
+      return { ...base, target };
+    }
+
+    function prepareTurn(phase) {
+      state.phase = phase;
+      state.currentWord = pickWord(phase);
+      state.typed = '';
+      state.misses = 0;
+      state.lastBonus = 0;
+      state.timeLimit = getTimeLimit();
+      state.bonusLimit = 5;
+      state.startTime = performance.now();
+      state.inputDeadline = state.startTime + state.timeLimit * 1000;
+      state.lockInput = false;
+      renderWord();
+      renderStats();
+      setTypedPreview();
+      startLoop();
+      els.timerLabel.textContent = phase === 'attack' ? '攻撃の制限時間' : '防御の制限時間';
+      if (phase === 'attack') {
+        pushMessage(`こうげき！「${state.currentWord.ja}」を入力せよ。`);
+      } else {
+        pushMessage(`ぼうぎょ！「${state.currentWord.ja}」で受け流せ。`);
+      }
+    }
+
+    function getTimeLimit() {
+      return state.player.items.has('hourglass') ? 6 : 5;
+    }
+
+    function startLoop() {
+      stopLoop();
+      const tick = () => {
+        const now = performance.now();
+        const remain = Math.max(0, state.inputDeadline - now);
+        const remainSec = remain / 1000;
+        els.timerText.textContent = `${remainSec.toFixed(2)}s`;
+        const pct = Math.max(0, (remainSec / state.timeLimit) * 100);
+        els.timerFill.style.width = `${pct}%`;
+        if (remain <= 0 && !state.lockInput) {
+          stopLoop();
+          handleTimeout();
+          return;
+        }
+        state.loopId = requestAnimationFrame(tick);
+      };
+      state.loopId = requestAnimationFrame(tick);
+    }
+
+    function stopLoop() {
+      if (state.loopId) {
+        cancelAnimationFrame(state.loopId);
+        state.loopId = null;
+      }
+    }
+
+    function handleTimeout() {
+      state.lockInput = true;
+      pushMessage('時間切れ！');
+      if (state.phase === 'attack') {
+        pushMessage('攻撃失敗！ ダメージを与えられなかった。');
+        queueNext(() => prepareTurn('defend'));
+      } else if (state.phase === 'defend') {
+        const dmg = state.currentEnemy.attack;
+        applyPlayerDamage(dmg, false, false);
+      }
+    }
+
+    function getBaseDamage(word) {
+      if (word.type === 'sword') return 24 + Math.floor(Math.random() * 6);
+      return 14 + Math.floor(Math.random() * 6);
+    }
+
+    function calculateTimeBonus() {
+      const now = performance.now();
+      const rawRemain = Math.max(0, (state.inputDeadline - now) / 1000);
+      const effectiveRemain = Math.min(rawRemain, state.bonusLimit);
+      return Math.max(0, Math.floor(effectiveRemain * 3));
+    }
+
+    function handleEnter() {
+      if (state.lockInput || !state.currentWord) return;
+      if (state.typed.length !== state.currentWord.target.length) {
+        state.misses += 1;
+        renderStats();
+        setTypedPreview(true);
+        updateKeyboardActive(null, '');
+        pushMessage('まだ入力が終わっていない。');
+        return;
+      }
+      stopLoop();
+      state.lockInput = true;
+      const noMiss = state.misses === 0;
+      const bonus = calculateTimeBonus();
+      state.lastBonus = bonus;
+      renderStats();
+
+      if (state.phase === 'attack') {
+        let dmg = getBaseDamage(state.currentWord) + bonus;
+        let crit = false;
+        if (noMiss && Math.random() < 0.28) {
+          crit = true;
+          dmg = Math.floor(dmg * 1.5);
+        }
+        state.currentEnemy.currentHp -= dmg;
+        animateEnemyHit();
+        pushMessage(`あなたのこうげき！ ${state.currentEnemy.name} に ${dmg} ダメージ！`);
+        if (crit) pushMessage('ノーミス！ クリティカル！');
+        updateAll();
+
+        if (state.currentEnemy.currentHp <= 0) {
+          handleEnemyDefeated();
+        } else {
+          queueNext(() => prepareTurn('defend'));
+        }
+      } else if (state.phase === 'defend') {
+        const noMissEvadeChance = state.player.items.has('shield') ? 0.50 : 0.30;
+        const evade = noMiss && Math.random() < noMissEvadeChance;
+        const reduced = Math.floor(state.currentEnemy.attack * 0.5);
+        if (evade) {
+          pushMessage('ノーミス！ 回避成功！ ダメージ0！');
+          queueNext(() => prepareTurn('attack'));
+        } else {
+          applyPlayerDamage(reduced, true, noMiss);
+        }
+      }
+    }
+
+    function animateEnemyHit() {
+      els.enemyEmoji.classList.remove('shake-enemy');
+      void els.enemyEmoji.offsetWidth;
+      els.enemyEmoji.classList.add('shake-enemy');
+    }
+
+    function animateKeyboardHit() {
+      els.kbdPanel.classList.remove('shake-kbd');
+      void els.kbdPanel.offsetWidth;
+      els.kbdPanel.classList.add('shake-kbd');
+    }
+
+    function applyPlayerDamage(dmg, defended = false, noMiss = false) {
+      state.player.hp -= dmg;
+      animateKeyboardHit();
+      pushMessage(`${state.currentEnemy.name} のこうげき！`);
+      if (defended) {
+        pushMessage(`防御成功。ダメージ軽減。 ${dmg} ダメージを受けた。`);
+        if (noMiss) pushMessage('ノーミスだったが回避は発動しなかった。');
+      } else {
+        pushMessage(`まともに食らった！ ${dmg} ダメージ！`);
+      }
+      updateAll();
+      if (state.player.hp <= 0) {
+        handleGameOver();
+      } else {
+        queueNext(() => prepareTurn('attack'));
+      }
+    }
+
+    function handleEnemyDefeated() {
+      state.clearedStages += 1;
+      pushMessage(`${state.currentEnemy.name} をたおした！`);
+
+      if (state.enemyIndex === ENEMIES.length - 1) {
+        handleGameClear();
+        return;
+      }
+
+      queueNext(() => {
+        resolveStageReward();
+        state.enemyIndex += 1;
+        loadEnemy();
+        updateAll();
+        prepareTurn('attack');
+      }, 850);
+    }
+
+    function resolveStageReward() {
+      let gotItem = null;
+      if (Math.random() < 0.5) {
+        const candidates = ITEM_POOL.filter(item => !state.player.items.has(item.id));
+        if (candidates.length > 0) {
+          gotItem = candidates[Math.floor(Math.random() * candidates.length)];
+          state.player.items.add(gotItem.id);
+          if (gotItem.id === 'meat') {
+            state.player.maxHp += 10;
+            pushMessage('🍖 を入手！ 最大HPが 10 増えた。');
+          } else if (gotItem.id === 'heart') {
+            state.player.hp = Math.min(state.player.maxHp, state.player.hp + 10);
+            pushMessage('❤ を入手！ HPが 10 回復した。');
+          } else if (gotItem.id === 'hourglass') {
+            pushMessage('⌛️ を入手！ 入力時間が 20% 増える。');
+          } else if (gotItem.id === 'sword') {
+            pushMessage('🗡️ を入手！ 剣ワードが使えるようになった。');
+          } else if (gotItem.id === 'shield') {
+            pushMessage('🛡️ を入手！ ノーミス防御時の回避率アップ。');
+          }
+        }
+      }
+
+      const recover = 20 + Math.floor(Math.random() * 11);
+      state.stageRecovered = recover;
+      state.player.hp = Math.min(state.player.maxHp, state.player.hp + recover);
+      pushMessage(`ステージクリア回復！ HPが ${recover} 回復した。`);
+      updateAll();
+    }
+
+    function handleGameOver() {
+      stopLoop();
+      state.lockInput = true;
+      updateBest();
+      pushMessage('あなたはたおれた……。');
+      setOverlay(true, `GAME OVER / 到達 STAGE ${state.enemyIndex + 1}`);
+    }
+
+    function handleGameClear() {
+      stopLoop();
+      state.lockInput = true;
+      state.totalClears += 1;
+      updateBest();
+      saveProgress();
+      pushMessage('🐉 をたおした！');
+      pushMessage('ゲームクリア！ Excellent!');
+      setOverlay(true, `CLEAR! HP ${Math.max(0, state.player.hp)} / ${state.player.maxHp}`);
+      updateAll();
+    }
+
+    function updateBest() {
+      if (state.clearedStages > state.bestClear) state.bestClear = state.clearedStages;
+      saveProgress();
+      updateAll();
+    }
+
+    function queueNext(fn, delay = 1200) {
+      setTimeout(fn, delay);
+    }
+
+    function startGame() {
+      setOverlay(false);
+      clearMessages();
+      pushMessage('ゲーム開始！');
+      prepareTurn('attack');
+    }
+
+    function normalizeKey(key) {
+      if (key === 'Enter') return 'Enter';
+      if (key.length === 1) return key.toLowerCase();
+      return key;
+    }
+
+    document.addEventListener('keydown', (event) => {
+      const key = normalizeKey(event.key);
+
+      if (els.overlay.classList.contains('show')) {
+        if (key === 'Enter') {
+          startGame();
+          event.preventDefault();
+        }
+        return;
+      }
+
+      if (state.lockInput || !state.currentWord) return;
+
+      if (key === 'Enter') {
+        handleEnter();
+        event.preventDefault();
+        return;
+      }
+
+      if (!/^[a-z0-9\-]$/.test(key)) return;
+
+      const expected = state.currentWord.target[state.typed.length];
+      if (key === expected) {
+        state.typed += key;
+        updateKeyboardActive(key, null);
+        setTypedPreview();
+      } else {
+        state.misses += 1;
+        renderStats();
+        updateKeyboardActive(null, key);
+        setTypedPreview(true);
+      }
+      event.preventDefault();
+    });
+
+    els.startBtn.addEventListener('click', startGame);
+    els.restartBtn.addEventListener('click', resetGame);
+
+    loadSave();
+    buildKeyboard();
+    resetGame();
+  </script>
+</body>
+</html>
