@@ -38,7 +38,7 @@
       margin: 0 auto;
       padding: 10px 0 8px;
       display: grid;
-      grid-template-rows: minmax(250px, 0.95fr) minmax(185px, 0.7fr) minmax(215px, 0.95fr) auto;
+      grid-template-rows: minmax(290px, 1.2fr) minmax(170px, 0.6fr) minmax(205px, 0.9fr) auto;
       gap: 8px;
     }
 
@@ -155,7 +155,7 @@
 
     .side {
       display: grid;
-      grid-template-rows: auto 1fr;
+      grid-template-rows: minmax(180px, 0.85fr) minmax(240px, 1.15fr);
       gap: 8px;
       min-height: 0;
     }
@@ -209,11 +209,11 @@
     }
 
     .messages {
-      padding: 8px 10px;
+      padding: 8px 10px 10px;
       display: flex;
       flex-direction: column;
       justify-content: end;
-      gap: 5px;
+      gap: 6px;
       font-size: 13px;
       min-height: 0;
       overflow: auto;
@@ -221,6 +221,7 @@
     }
 
     .message-line {
+      min-height: 2.2em;
       padding: 6px 8px;
       line-height: 1.35;
       border-radius: 10px;
@@ -229,7 +230,7 @@
 
     .mid {
       display: grid;
-      grid-template-columns: 1.15fr .85fr;
+      grid-template-columns: 1fr;
       gap: 8px;
       min-height: 0;
     }
@@ -307,32 +308,6 @@
       height: 100%;
       background: linear-gradient(90deg, #9eff7a, #ffd166, #ff7d7d);
       transition: width .08s linear;
-    }
-
-    .help-grid {
-      padding: 10px;
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-    }
-
-    .help-card {
-      background: rgba(255,255,255,.04);
-      border-radius: 14px;
-      padding: 9px 10px;
-      border: 1px solid rgba(255,255,255,.06);
-    }
-
-    .help-card h4 {
-      margin: 0 0 5px;
-      font-size: 13px;
-      color: var(--muted);
-    }
-
-    .help-card p {
-      margin: 0;
-      line-height: 1.35;
-      font-size: 12px;
     }
 
     .kbd-panel {
@@ -547,15 +522,6 @@
         </div>
       </section>
 
-      <section class="panel">
-        <div class="panel-header">RULE MEMO</div>
-        <div class="help-grid">
-          <div class="help-card"><h4>攻撃ターン</h4><p>語句を正しく打ち、最後に Enter。ノーミスならクリティカル判定あり。</p></div>
-          <div class="help-card"><h4>防御ターン</h4><p>語句を正しく打ち、最後に Enter。成功で軽減、ノーミスで回避判定あり。</p></div>
-          <div class="help-card"><h4>時間ボーナス</h4><p>早く終えるほど加点。⌛️取得時は制限時間のみ増え、ボーナス上限は増えない。</p></div>
-          <div class="help-card"><h4>操作</h4><p>キーボードのみで遊べる。英字は小文字で判定。誤字では進まない。</p></div>
-        </div>
-      </section>
     </section>
 
     <section class="panel kbd-panel" id="kbdPanel">
